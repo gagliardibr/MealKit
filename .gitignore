@@ -20,28 +20,10 @@ xcuserdata/
 # SwiftPM
 .swiftpm
 Package.resolved
-
-# CocoaPods
-Pods/
-*.xcworkspace/contents.xcworkspacedata
-
-# Carthage
-Carthage/Build/
-
-# Fastlane
-fastlane/report.xml
-fastlane/screenshots
-fastlane/test_output
-
-# Bundler
-.bundle
-
-# SPM
 .build/
 
-# IDEs
-.idea/
-*.iml
+# Xcode Workspace (se não estiver usando CocoaPods)
+*.xcworkspace
 
 # macOS
 .DS_Store
@@ -59,7 +41,11 @@ fastlane/test_output
 .Trashes
 .VolumeIcon.icns
 
-# Hidden files
+# IDEs
+.idea/
+*.iml
+
+# Hidden files and swap
 *.swp
 *~
 .*.sw?
@@ -67,9 +53,6 @@ fastlane/test_output
 # Logs
 *.log
 
-# XCFrameworks
-*.xcframework
-
-# Personal local files
-local.env
+# Local secrets
 .env
+local.env
