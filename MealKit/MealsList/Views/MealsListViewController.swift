@@ -18,7 +18,6 @@ class MealsListViewController: UIViewController {
     }
 }
 
-// MARK: - ViewCode
 extension MealsListViewController: ViewCode {
     func addSubviews() {
         view.addSubview(tableView)
@@ -37,37 +36,35 @@ extension MealsListViewController: ViewCode {
     func setupStyle() {
         view.backgroundColor = .systemBackground
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(MealCell.self, forCellReuseIdentifier: "MealCell")
     }
 
     func bindViewModel() {
         viewModel.onUpdate = { [weak self] in
-            DispatchQueue.main.async {
-                self?.tableView.reloadData()
-            }
+            self?.tableView.reloadData()
         }
     }
 
     func setupAccessibility() {
-        tableView.accessibilityLabel = "Lista de receitas"
+        tableView.accessibilityLabel = "Lista de refeições"
     }
 
     func setupNavigation() {
-        title = "Receitas"
+        title = "MealKit"
     }
 }
 
-// MARK: - UITableViewDataSource
-
 extension MealsListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.meals.count
+        viewModel.meals.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "MealCell", for: indexPath) as? MealCell else {
+            return UITableViewCell()
+        }
         let meal = viewModel.meals[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = meal.strMeal
+        cell.configure(with: meal)
         return cell
     }
 }
