@@ -26,6 +26,6 @@ final class MealsListViewModel {
 
     func didSelectMeal(at index: Int) {
         let selectedMeal = meals[index]
-        print(selectedMeal)
+        coordinator?.showMealDetail(meal: selectedMeal)
     }
 }

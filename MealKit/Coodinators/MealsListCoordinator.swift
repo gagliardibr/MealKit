@@ -21,4 +21,10 @@ final class MealsListCoordinator {
         viewModel.coordinator = self
         navigationController.pushViewController(viewController, animated: false)
     }
+
+    func showMealDetail(meal: Meal) {
+        let detailViewModel = MealDetailViewModel(meal: meal)
+        let detailVC = MealDetailViewController(viewModel: detailViewModel)
+        navigationController.pushViewController(detailVC, animated: true)
+    }
 }

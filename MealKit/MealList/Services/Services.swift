@@ -17,7 +17,7 @@ class MealService {
         }
 
         let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(MealResponse.self, from: data)
+        let response = try JSONDecoder().decode(MealsResponse.self, from: data)
         return response.meals ?? []
     }
 }
