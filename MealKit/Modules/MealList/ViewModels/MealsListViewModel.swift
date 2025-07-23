@@ -9,8 +9,9 @@ import Foundation
 
 final class MealsListViewModel {
     var meals: [Meal] = []
-    var coordinator: MealsListCoordinator?
     var onMealsFetched: (() -> Void)?
+    
+    weak var coordinator: MealsListCoordinator?
 
     func fetchMeals(searchTerm: String = "") {
         Task {

@@ -8,8 +8,12 @@
 
 import UIKit
 
-final class MealsListCoordinator {
-    private let navigationController: UINavigationController
+protocol MealsListCoordinating: AnyObject {
+    func showMealDetail(meal: Meal)
+}
+
+final class MealsListCoordinator: Coordinator, MealsListCoordinating {
+    private(set) var navigationController: UINavigationController
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -17,14 +21,14 @@ final class MealsListCoordinator {
 
     func start() {
         let viewModel = MealsListViewModel()
-        let viewController = MealsListViewController(viewModel: viewModel)
         viewModel.coordinator = self
+        let viewController = MealsListViewController(viewModel: viewModel)
         navigationController.pushViewController(viewController, animated: false)
     }
 
     func showMealDetail(meal: Meal) {
-        let detailViewModel = MealDetailViewModel(meal: meal)
-        let detailVC = MealDetailViewController(viewModel: detailViewModel)
-        navigationController.pushViewController(detailVC, animated: true)
+        let viewModel = MealDetailViewModel(meal: meal)
+        let viewController = MealDetailViewController(viewModel: viewModel)
+        navigationController.pushViewController(viewController, animated: true)
     }
 }

@@ -10,6 +10,7 @@ import UIKit
 final class AppCoordinator {
     private let window: UIWindow
     private let navigationController = UINavigationController()
+    private var mealsCoordinator: MealsListCoordinator?
 
     init(window: UIWindow) {
         self.window = window
@@ -18,11 +19,13 @@ final class AppCoordinator {
     func start() {
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+        navigationController.applyDefaultAppearance()
         showMealsList()
     }
 
     private func showMealsList() {
         let coordinator = MealsListCoordinator(navigationController: navigationController)
+        self.mealsCoordinator = coordinator
         coordinator.start()
     }
 }
