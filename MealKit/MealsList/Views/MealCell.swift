@@ -9,6 +9,7 @@ import UIKit
 import SDWebImage
 
 final class MealCell: UITableViewCell {
+    static let reuseIdentifier = "MealCell"
     private let mealImageView = UIImageView()
     private let mealTitleLabel = UILabel()
 

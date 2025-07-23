@@ -9,14 +9,19 @@ import UIKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    var window: UIWindow?
+    var appCoordinator: AppCoordinator?
+
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = UINavigationController(rootViewController: MealsListViewController())
-        window.makeKeyAndVisible()
         self.window = window
+        let coordinator = AppCoordinator(window: window)
+        self.appCoordinator = coordinator
+        coordinator.start()
+
         return true
     }
 }
-

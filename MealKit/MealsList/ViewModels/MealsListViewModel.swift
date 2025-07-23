@@ -7,21 +7,25 @@
 
 import Foundation
 
-class MealsListViewModel {
+final class MealsListViewModel {
     var meals: [Meal] = []
-    var onUpdate: (() -> Void)?
+    var coordinator: MealsListCoordinator?
+    var onMealsFetched: (() -> Void)?
 
-    func fetchMeals() {
+    func fetchMeals(searchTerm: String = "") {
         Task {
             do {
-                let result = try await MealService().fetchMeals(for: "chicken")
-                DispatchQueue.main.async {
-                    self.meals = result
-                    self.onUpdate?()
-                }
+                let result = try await MealService().fetchMeals(for: searchTerm)
+                self.meals = result
+                onMealsFetched?()
             } catch {
                 print("Erro ao buscar refeições: \(error)")
             }
         }
+    }
+
+    func didSelectMeal(at index: Int) {
+        let selectedMeal = meals[index]
+        print(selectedMeal)
     }
 }

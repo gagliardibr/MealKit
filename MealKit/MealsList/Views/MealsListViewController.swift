@@ -1,23 +1,37 @@
 //
-//  ViewController.swift
+//  MealsListViewController.swift
 //  MealKit
 //
 //  Created by Bruna Gagliardi on 21/07/25.
 //
 
 import UIKit
+import SDWebImage
 
-class MealsListViewController: UIViewController {
-    private let viewModel = MealsListViewModel()
+final class MealsListViewController: UIViewController {
+    private let viewModel: MealsListViewModel
     private let tableView = UITableView()
+
+    init(viewModel: MealsListViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewCode()
+        setupAccessibility()
+        setupNavigation()
+        bindViewModel()
         viewModel.fetchMeals()
     }
 }
 
+// MARK: - ViewCode Setup
 extension MealsListViewController: ViewCode {
     func addSubviews() {
         view.addSubview(tableView)
@@ -36,17 +50,23 @@ extension MealsListViewController: ViewCode {
     func setupStyle() {
         view.backgroundColor = .systemBackground
         tableView.dataSource = self
-        tableView.register(MealCell.self, forCellReuseIdentifier: "MealCell")
+        tableView.delegate = self
+        tableView.register(MealCell.self, forCellReuseIdentifier: MealCell.reuseIdentifier)
+        tableView.rowHeight = 100
+        tableView.separatorStyle = .singleLine
     }
 
     func bindViewModel() {
-        viewModel.onUpdate = { [weak self] in
-            self?.tableView.reloadData()
+        viewModel.onMealsFetched = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+            }
         }
     }
 
     func setupAccessibility() {
         tableView.accessibilityLabel = "Lista de refeições"
+        tableView.accessibilityIdentifier = "mealsTableView"
     }
 
     func setupNavigation() {
@@ -54,17 +74,23 @@ extension MealsListViewController: ViewCode {
     }
 }
 
-extension MealsListViewController: UITableViewDataSource {
+// MARK: - UITableViewDataSource & UITableViewDelegate
+extension MealsListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.meals.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "MealCell", for: indexPath) as? MealCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MealCell.reuseIdentifier, for: indexPath) as? MealCell else {
             return UITableViewCell()
         }
         let meal = viewModel.meals[indexPath.row]
         cell.configure(with: meal)
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        viewModel.didSelectMeal(at: indexPath.row)
     }
 }
