@@ -8,26 +8,62 @@
 import Foundation
 
 final class MealsListViewModel {
+    // MARK: - Outputs
+
     var meals: [Meal] = []
     var onMealsFetched: (() -> Void)?
     weak var coordinator: MealsListCoordinating?
 
-    private let mealService = MealService()
-    private var cachedMeals: [Meal] = []
+    // MARK: - Dependencies
 
+    private let mealService = MealService()
+
+    // MARK: - State
+
+    private var cachedMeals: [Meal] = []
     private var selectedFilters: [String] = []
+    private var searchTask: Task<Void, Error>?
+
+    private let debounceInterval: UInt64 = 300_000_000 // 300ms
+
+    lazy var filtersViewModel: FiltersViewModel = {
+        let vm = FiltersViewModel()
+        vm.delegate = self
+        return vm
+    }()
+
+    // MARK: - Public Methods
 
     func fetchMeals(searchTerm: String = "") {
+        cancelSearchTask()
+
         Task {
             do {
-                let result = try await mealService.fetchMeals(for: searchTerm)
-                self.cachedMeals = result
-                self.meals = applyFiltersToMeals(result)
-                onMealsFetched?()
+                let meals = try await mealService.fetchMeals(for: searchTerm)
+                self.cachedMeals = meals
+                self.meals = self.applyFilters(to: meals)
+                self.onMealsFetched?()
             } catch {
                 print("Error fetching meals: \(error)")
             }
         }
+    }
+
+    func fetchMealsDebounced(for term: String) {
+        cancelSearchTask()
+
+        searchTask = Task {
+            try await Task.sleep(nanoseconds: debounceInterval)
+            guard !Task.isCancelled else { return }
+
+            fetchMeals(searchTerm: term)
+        }
+    }
+
+    func applyFilters(_ filters: [String]) {
+        selectedFilters = filters
+        meals = applyFilters(to: cachedMeals)
+        onMealsFetched?()
     }
 
     func didSelectMeal(at index: Int) {
@@ -36,22 +72,33 @@ final class MealsListViewModel {
     }
 
     func clearCache() {
+        cancelSearchTask()
         cachedMeals = []
         meals = []
+        selectedFilters = []
     }
 
-    func applyFilters(_ filters: [String]) {
-        selectedFilters = filters
-        self.meals = applyFiltersToMeals(cachedMeals)
-        onMealsFetched?()
+    // MARK: - Private Helpers
+
+    private func cancelSearchTask() {
+        searchTask?.cancel()
+        searchTask = nil
     }
 
-    private func applyFiltersToMeals(_ meals: [Meal]) -> [Meal] {
+    private func applyFilters(to meals: [Meal]) -> [Meal] {
         guard !selectedFilters.isEmpty else { return meals }
 
         return meals.filter { meal in
             selectedFilters.contains(meal.strCategory ?? "") ||
             selectedFilters.contains(meal.strArea ?? "")
         }
+    }
+}
+
+// MARK: - FiltersViewModelDelegate
+
+extension MealsListViewModel: FiltersViewModelDelegate {
+    func didApplyFilters(_ filters: [String]) {
+        applyFilters(filters)
     }
 }

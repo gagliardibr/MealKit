@@ -42,19 +42,11 @@ final class MealsListViewController: UIViewController {
     }
 
     @objc private func didTapFilter() {
-        let filterViewModel = FiltersViewModel()
-        let filterVC = FiltersViewController(viewModel: filterViewModel)
-        filterViewModel.delegate = self
-
+        let filterVC = FiltersViewController(viewModel: viewModel.filtersViewModel)
         let nav = UINavigationController(rootViewController: filterVC)
-        nav.modalPresentationStyle = .pageSheet
-
         if let sheet = nav.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 16
         }
-
         present(nav, animated: true)
     }
 
@@ -158,7 +150,7 @@ extension MealsListViewController: UISearchBarDelegate {
             viewModel.fetchMeals()
         } else {
             guard searchText.count > 1 else { return }
-            viewModel.fetchMeals(searchTerm: searchText)
+            viewModel.fetchMealsDebounced(for: searchText)
         }
     }
 
@@ -198,6 +190,6 @@ extension MealsListViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension MealsListViewController: FiltersViewModelDelegate {
     func didApplyFilters(_ filters: [String]) {
-      //  viewModel.applyFilters(filters)
+        viewModel.applyFilters(filters)
     }
 }

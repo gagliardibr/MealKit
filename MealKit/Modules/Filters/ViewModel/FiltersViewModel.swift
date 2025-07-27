@@ -50,14 +50,21 @@ final class FiltersViewModel {
     }
 
     func toggleSelection(in section: FilterSection, item: String) {
-        selectedCategories.removeAll()
-        selectedAreas.removeAll()
-
         switch section {
         case .category:
-            selectedCategories = [item]
+            if selectedCategories.contains(item) {
+                selectedCategories.remove(item)
+            } else {
+                selectedCategories = [item]
+                selectedAreas.removeAll()
+            }
         case .area:
-            selectedAreas = [item]
+            if selectedAreas.contains(item) {
+                selectedAreas.remove(item)
+            } else {
+                selectedAreas = [item]
+                selectedCategories.removeAll()
+            }
         }
     }
 
@@ -91,5 +98,10 @@ final class FiltersViewModel {
     func applySelectedFilters() {
         let allFilters = Array(selectedCategories.union(selectedAreas))
         delegate?.didApplyFilters(allFilters)
+    }
+    
+    func clearFilters() {
+        selectedAreas = []
+        selectedCategories = []
     }
 }

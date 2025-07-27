@@ -59,7 +59,7 @@ final class FiltersViewController: UIViewController {
     // MARK: - Setup
 
     private func setupUI() {
-        title = "Filter Recipes"
+        title = "Filter"
         view.backgroundColor = .systemBackground
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel,
@@ -182,5 +182,9 @@ extension FiltersViewController: UICollectionViewDelegate {
         let item = viewModel.item(at: indexPath)
         viewModel.toggleSelection(in: section, item: item)
         collectionView.reloadData() // Força a atualização de TODAS as células
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        viewModel.clearFilters()
     }
 }
