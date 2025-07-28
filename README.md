@@ -104,7 +104,7 @@ Para este projeto foi utilizado o **Swift Package Manager (SPM)**.
 
 ---
 
-## Capturas de Tela
+## Capturas de Tela (em andamento)
 
 Espaço reservado para imagens do app:
 
@@ -112,12 +112,6 @@ Espaço reservado para imagens do app:
 - [ ] Aplicação de filtros (categoria ou área)
 - [ ] Estado de erro com mensagem amigável
 - [ ] Tela de detalhes (quando implementada)
-
-Exemplo de sintaxe no Markdown:
-
-```markdown
-![Lista de receitas](./Resources/Screenshots/meals-list.png)
-```
 
 ---
 
