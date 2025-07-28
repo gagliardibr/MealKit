@@ -8,32 +8,39 @@
 import Foundation
 
 protocol FilterServiceProtocol {
-    func fetchCategories() async throws -> [String]
-    func fetchAreas() async throws -> [String]
+    func fetchCategories() async throws -> [FilterItem]
+    func fetchAreas() async throws -> [FilterItem]
 }
 
 final class FilterService: FilterServiceProtocol {
-    private let baseURL = "https://www.themealdb.com/api/json/v1/1"
+    private let session: URLSessionProtocol
 
-    func fetchCategories() async throws -> [String] {
-        let urlString = "\(baseURL)/list.php?c=list"
-        guard let url = URL(string: urlString) else {
-            throw URLError(.badURL)
-        }
-
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(FilterResponse.self, from: data)
-        return response.meals.compactMap { $0.strCategory }
+    init(session: URLSessionProtocol = URLSession.shared) {
+        self.session = session
     }
 
-    func fetchAreas() async throws -> [String] {
-        let urlString = "\(baseURL)/list.php?a=list"
-        guard let url = URL(string: urlString) else {
+    func fetchCategories() async throws -> [FilterItem] {
+        try await fetchList(endpoint: .listCategories, keyPath: \.strCategory)
+    }
+
+    func fetchAreas() async throws -> [FilterItem] {
+        try await fetchList(endpoint: .listAreas, keyPath: \.strArea)
+    }
+
+    private func fetchList(
+        endpoint: MealEndpoint,
+        keyPath: KeyPath<FilterItemDTO, String?>
+    ) async throws -> [FilterItem] {
+        guard let url = endpoint.url else {
             throw URLError(.badURL)
         }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await session.data(from: url)
         let response = try JSONDecoder().decode(FilterResponse.self, from: data)
-        return response.meals.compactMap { $0.strArea }
+
+        return response.meals.compactMap { dto in
+            guard let name = dto[keyPath: keyPath] else { return nil }
+            return FilterItem(name: name, isSelected: false)
+        }
     }
 }

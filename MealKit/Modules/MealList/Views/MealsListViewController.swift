@@ -1,117 +1,113 @@
+//
+//  MealsListCoordinator.swift
+//  MealKit
+//
+//  Created by Bruna Gagliardi on 22/07/25.
+//
+
 import UIKit
-import SDWebImage
+import Combine
 
-final class MealsListViewController: UIViewController {
+final class MealsListViewController: UIViewController, ViewCode {
     // MARK: - Properties
-
+    
     internal let viewModel: MealsListViewModel
     private let tableView = UITableView()
     private let searchController = UISearchController(searchResultsController: nil)
-
+    private var cancellables = Set<AnyCancellable>()
+    
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+    
     // MARK: - Init
-
+    
     init(viewModel: MealsListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - Lifecycle
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewCode()
-        bindViewModel()
         viewModel.fetchMeals()
     }
-
+    
     // MARK: - Actions
-
-    @objc private func didTapSearch() {
-        if navigationItem.searchController == nil {
-            setupSearchController()
-        }
-        searchController.isActive = true
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.applySearchBarStyling()
-            self.applySearchCancelButtonStyling()
-        }
-    }
-
+    
     @objc private func didTapFilter() {
         viewModel.didTapFilter()
     }
+    
+    @objc private func didTapSearch() {
+        navigationItem.searchController = searchController
+            navigationItem.hidesSearchBarWhenScrolling = false
+            definesPresentationContext = true
+            searchController.searchBar.delegate = self
+            searchController.obscuresBackgroundDuringPresentation = false
+            searchController.hidesNavigationBarDuringPresentation = false
 
-    func setupNavigation() {
-        title = "MealKit"
-        navigationItem.largeTitleDisplayMode = .never
-
-        let searchButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
-        let filterButton = UIBarButtonItem(
-            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapFilter)
-        )
-
-        navigationItem.rightBarButtonItems = [filterButton, searchButton]
+            searchController.isActive = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    self.applySearchBarStyling()
+                    self.applySearchCancelButtonStyling()
+                }
+    }
+    
+    private func handleViewState(_ state: MealsListViewModel.ViewState) {
+        switch state {
+        case .loading:
+            loadingIndicator.startAnimating()
+            tableView.isHidden = true
+        case .success, .empty:
+            loadingIndicator.stopAnimating()
+            tableView.isHidden = false
+            tableView.reloadData()
+        case .error(let message):
+            loadingIndicator.stopAnimating()
+            tableView.isHidden = true
+            showError(message)
+        }
+    }
+    
+    private func showError(_ message: String) {
+        let alert = UIAlertController(title: "Erro", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
-// MARK: - ViewCode Setup
+// MARK: - UITableViewDataSource
 
-extension MealsListViewController: ViewCode {
-    func addSubviews() {
-        view.addSubview(tableView)
+extension MealsListViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        viewModel.cellViewModels.count
     }
-
-    func setupConstraints() {
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-    }
-
-    func setupStyle() {
-        view.backgroundColor = .systemBackground
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.rowHeight = 100
-        tableView.separatorStyle = .singleLine
-        tableView.register(MealCell.self, forCellReuseIdentifier: MealCell.reuseIdentifier)
-    }
-
-    func bindViewModel() {
-        viewModel.onMealsFetched = { [weak self] in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-
-                self.tableView.reloadData()
-
-                // Aguarda o próximo ciclo do run loop para garantir que as células existam
-                DispatchQueue.main.async {
-                    let indexPath = IndexPath(row: 0, section: 0)
-                    if self.tableView.numberOfSections > 0,
-                       self.tableView.numberOfRows(inSection: 0) > 0 {
-                        self.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
-                    }
-                }
-            }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MealCell.reuseIdentifier, for: indexPath) as? MealCell else {
+            return UITableViewCell()
         }
+        cell.configure(with: viewModel.cellViewModels[indexPath.row])
+        return cell
     }
+}
 
+// MARK: - UITableViewDelegate
 
-    func setupAccessibility() {
-        tableView.accessibilityLabel = "Meals list"
-        tableView.accessibilityIdentifier = "mealsTableView"
+extension MealsListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        viewModel.didSelectMeal(at: indexPath.row)
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
@@ -126,7 +122,7 @@ private extension MealsListViewController {
         navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
     }
-
+    
     func applySearchBarStyling() {
         let textField = searchController.searchBar.searchTextField
         textField.backgroundColor = UIColor.white.withAlphaComponent(0.2)
@@ -136,25 +132,26 @@ private extension MealsListViewController {
             string: "Search recipes...",
             attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.7)]
         )
-
+        
         (textField.leftView as? UIImageView)?.tintColor = .white
-
+        
         if let clearButton = textField.value(forKey: "clearButton") as? UIButton {
             clearButton.setImage(clearButton.imageView?.image?.withRenderingMode(.alwaysTemplate), for: .normal)
             clearButton.tintColor = .white
         }
-
+        
         searchController.searchBar.searchBarStyle = .minimal
         searchController.searchBar.barTintColor = .clear
-        searchController.searchBar.backgroundColor = UIColor(hex: "#7B2D26")
+        searchController.searchBar.backgroundColor = DesignSystem.Colors.primaryColor
     }
-
+    
     func applySearchCancelButtonStyling() {
         guard let cancelButton = searchController.searchBar.value(forKey: "cancelButton") as? UIButton else { return }
         cancelButton.setTitleColor(.white, for: .normal)
         cancelButton.tintColor = .white
     }
 }
+
 
 // MARK: - UISearchBarDelegate
 
@@ -167,35 +164,72 @@ extension MealsListViewController: UISearchBarDelegate {
             viewModel.fetchMealsDebounced(for: searchText)
         }
     }
-
+    
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         viewModel.fetchMeals()
-        navigationItem.searchController = nil
+        DispatchQueue.main.async {
+            self.navigationItem.searchController = nil
+        }
     }
 }
+// MARK: - ViewCode Implementation
 
-// MARK: - UITableViewDataSource & UITableViewDelegate
-
-extension MealsListViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.cellViewModels.count
+extension MealsListViewController {
+    func addSubviews() {
+        view.addSubview(tableView)
+        view.addSubview(loadingIndicator)
     }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: MealCell.reuseIdentifier,
-            for: indexPath
-        ) as? MealCell else {
-            return UITableViewCell()
-        }
-
-        let cellViewModel = viewModel.cellViewModels[indexPath.row]
-        cell.configure(with: cellViewModel)
-        return cell
+    
+    func setupConstraints() {
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
     }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        viewModel.didSelectMeal(at: indexPath.row)
+    
+    func setupStyle() {
+        view.backgroundColor = .systemBackground
+        tableView.backgroundColor = .clear
+        tableView.separatorInset = .zero
+        tableView.layoutMargins = .zero
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 160
+        tableView.register(MealCell.self, forCellReuseIdentifier: MealCell.reuseIdentifier)
+        tableView.delegate = self
+        tableView.dataSource = self
+    }
+    
+    func bindViewModel() {
+        viewModel.$state
+            .receive(on: RunLoop.main)
+            .sink { [weak self] state in
+                self?.handleViewState(state)
+            }
+            .store(in: &cancellables)
+    }
+    
+    func setupAccessibility() {
+        tableView.accessibilityIdentifier = "MealsTableView"
+        searchController.searchBar.accessibilityIdentifier = "SearchBar"
+    }
+    
+    func setupNavigation() {
+        navigationController?.applyDefaultAppearance()
+        title = "Meals"
+        title = "MealKit"
+        navigationItem.largeTitleDisplayMode = .never
+        
+        let searchButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
+        let filterButton = UIBarButtonItem(image: UIImage(systemName: "line.3.horizontal.decrease.circle"), style: .plain, target: self, action: #selector(didTapFilter))
+        navigationItem.rightBarButtonItems = [filterButton, searchButton]
+        definesPresentationContext = true
     }
 }

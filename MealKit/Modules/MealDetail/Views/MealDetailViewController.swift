@@ -13,6 +13,7 @@ final class MealDetailViewController: UIViewController {
     private let imageView = UIImageView()
     private let textView = UITextView()
 
+    // MARK: - Init
     init(viewModel: MealDetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -22,6 +23,7 @@ final class MealDetailViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewCode()
@@ -47,6 +49,8 @@ extension MealDetailViewController: ViewCode {
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             imageView.heightAnchor.constraint(equalToConstant: 200),
             imageView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 9.0/16.0), // 16:9 ratio
+
 
             textView.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 12),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -64,6 +68,7 @@ extension MealDetailViewController: ViewCode {
         textView.font = .preferredFont(forTextStyle: .body)
         textView.isEditable = false
         textView.isScrollEnabled = true
+        textView.backgroundColor = .clear
     }
 
     func bindViewModel() {

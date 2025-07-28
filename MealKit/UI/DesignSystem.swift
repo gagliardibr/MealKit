@@ -9,9 +9,7 @@ import UIKit
 
 enum DesignSystem {
     enum Colors {
-        static let primaryColor = UIColor(hex: "#FF5733")
-        static let accentColor = UIColor(hex: "#1ABC9C")
-        static let backgroundColor = UIColor(hex: "#F2F2F2")
+        static let primaryColor = UIColor(hex: "#7B2D26")
     }
 
     enum Fonts {

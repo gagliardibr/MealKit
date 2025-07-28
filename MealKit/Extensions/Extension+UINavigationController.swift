@@ -11,7 +11,7 @@ extension UINavigationController {
     func applyDefaultAppearance() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(hex: "#7B2D26")
+        appearance.backgroundColor = DesignSystem.Colors.primaryColor
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.boldSystemFont(ofSize: 18)
@@ -23,6 +23,6 @@ extension UINavigationController {
         navigationBar.standardAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance
         navigationBar.tintColor = .white
-        navigationBar.prefersLargeTitles = true
+        navigationBar.prefersLargeTitles = false
     }
 }

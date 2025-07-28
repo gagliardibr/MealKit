@@ -7,27 +7,29 @@
 
 import Foundation
 
-struct FilterSection {
-    let title: String
-    var items: [FilterItem]
-}
-
-struct FilterItem {
-    let name: String
-    var isSelected: Bool
-}
+// MARK: - Delegate
 
 protocol FiltersViewModelDelegate: AnyObject {
-    func didApplyFilters(_ filters: [String])
+    func didApplyMealFilters(_ filters: [String])
 }
+
+// MARK: - ViewModel
 
 final class FiltersViewModel {
     private(set) var sections: [FilterSection] = []
 
     weak var delegate: FiltersViewModelDelegate?
-    private let filterService = FilterService()
+    private let filterService: FilterServiceProtocol
 
     var onFiltersUpdated: (([FilterSection]) -> Void)?
+
+    // MARK: - Init (com injeção de dependência)
+
+    init(filterService: FilterServiceProtocol = FilterService()) {
+        self.filterService = filterService
+    }
+
+    // MARK: - Ações
 
     func fetchFilters() {
         Task {
@@ -45,17 +47,24 @@ final class FiltersViewModel {
                 self.sections = [
                     FilterSection(
                         title: "Category",
-                        items: (results.0 ?? []).map { name in
-                            FilterItem(name: name, isSelected: previousSelections["Category"]?.contains(name) ?? false)
+                        items: (results.0 ?? []).map { item in
+                            FilterItem(
+                                name: item.name,
+                                isSelected: previousSelections["Category"]?.contains(item.name) ?? false
+                            )
                         }
                     ),
                     FilterSection(
                         title: "Area",
-                        items: (results.1 ?? []).map { name in
-                            FilterItem(name: name, isSelected: previousSelections["Area"]?.contains(name) ?? false)
+                        items: (results.1 ?? []).map { item in
+                            FilterItem(
+                                name: item.name,
+                                isSelected: previousSelections["Area"]?.contains(item.name) ?? false
+                            )
                         }
                     )
                 ]
+
 
                 self.onFiltersUpdated?(self.sections)
             }
@@ -66,27 +75,26 @@ final class FiltersViewModel {
         guard sections.indices.contains(section),
               sections[section].items.indices.contains(index) else { return }
 
-        // Verifica se o item já estava selecionado
         let wasSelected = sections[section].items[index].isSelected
 
-        // Deselect todos os itens
+        // Deseleciona todos os itens da seção
         for i in 0..<sections[section].items.count {
             sections[section].items[i].isSelected = false
         }
 
-        // Só seleciona de novo se ele não estava selecionado antes (toggle)
+        // Toggle
         if !wasSelected {
             sections[section].items[index].isSelected = true
         }
 
         onFiltersUpdated?(sections)
     }
-    
+
     func applySelectedFilters() {
         let selected = sections.flatMap { section in
             section.items.filter { $0.isSelected }.map { $0.name }
         }
 
-        delegate?.didApplyFilters(selected)
+        delegate?.didApplyMealFilters(selected)
     }
 }

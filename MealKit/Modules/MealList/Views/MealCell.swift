@@ -10,6 +10,7 @@ import SDWebImage
 
 final class MealCell: UITableViewCell {
     static let reuseIdentifier = "MealCell"
+
     private let mealImageView = UIImageView()
     private let mealTitleLabel = UILabel()
 
@@ -22,14 +23,19 @@ final class MealCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        mealImageView.image = nil
+        mealTitleLabel.text = nil
+    }
+
     func configure(with viewModel: MealCellViewModel) {
         mealTitleLabel.text = viewModel.title
-        DispatchQueue.main.async {
-            self.mealImageView.sd_setImage(with: viewModel.imageURL)
-        }
+        mealImageView.sd_setImage(with: viewModel.imageURL, placeholderImage: UIImage(systemName: "photo"))
     }
 }
 
+// MARK: - ViewCode
 extension MealCell: ViewCode {
     func addSubviews() {
         contentView.addSubview(mealImageView)
@@ -45,6 +51,7 @@ extension MealCell: ViewCode {
             mealImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             mealImageView.widthAnchor.constraint(equalToConstant: 60),
             mealImageView.heightAnchor.constraint(equalToConstant: 60),
+            mealImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
 
             mealTitleLabel.leadingAnchor.constraint(equalTo: mealImageView.trailingAnchor, constant: 16),
             mealTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
@@ -56,13 +63,14 @@ extension MealCell: ViewCode {
         mealImageView.contentMode = .scaleAspectFill
         mealImageView.layer.cornerRadius = 8
         mealImageView.clipsToBounds = true
+        mealImageView.accessibilityIdentifier = "mealImageView"
 
         mealTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .medium)
         mealTitleLabel.numberOfLines = 0
+        mealTitleLabel.accessibilityIdentifier = "mealTitleLabel"
     }
-    
+
     func bindViewModel() {}
     func setupAccessibility() {}
     func setupNavigation() {}
 }
-

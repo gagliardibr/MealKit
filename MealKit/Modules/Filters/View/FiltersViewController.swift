@@ -25,6 +25,7 @@ final class FiltersViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigation()
         setupView()
         setupCollectionView()
         bindViewModel()
@@ -32,14 +33,20 @@ final class FiltersViewController: UIViewController {
     }
 
     // MARK: - Setup
-    private func setupView() {
+
+    private func setupNavigation() {
         title = "Filters"
-        view.backgroundColor = .systemBackground
 
         let applyButton = UIBarButtonItem(title: "Apply", style: .done, target: self, action: #selector(applyFilters))
+        applyButton.tintColor = .black
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelFilters))
+        cancelButton.tintColor = .black
         navigationItem.rightBarButtonItem = applyButton
         navigationItem.leftBarButtonItem = cancelButton
+    }
+
+    private func setupView() {
+        view.backgroundColor = .systemBackground
     }
 
     private func setupCollectionView() {
@@ -56,6 +63,7 @@ final class FiltersViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .clear
         collectionView.keyboardDismissMode = .onDrag
+        collectionView.accessibilityIdentifier = "filtersCollectionView"
 
         view.addSubview(collectionView)
 
@@ -74,38 +82,41 @@ final class FiltersViewController: UIViewController {
         )
     }
 
+    private func setupAdapter() {
+        adapter = FilterCollectionAdapter(
+            sections: viewModel.sections,
+            collectionView: collectionView,
+            toggleSelection: { [weak self] section, index in
+                self?.viewModel.toggleFilterSelection(section: section, index: index)
+            }
+        )
+
+        collectionView.delegate = adapter
+        collectionView.dataSource = adapter
+    }
+
     // MARK: - Binding
+
     private func bindViewModel() {
-        viewModel.onFiltersUpdated = { [weak self] (sections: [FilterSection]) in
+        viewModel.onFiltersUpdated = { [weak self] sections in
             self?.adapter?.updateSections(sections)
             self?.collectionView.reloadData()
         }
     }
 
     // MARK: - Data Fetch
+
     private func fetchData() {
         Task { [weak self] in
             guard let self = self else { return }
-
             self.viewModel.fetchFilters()
-
-            self.adapter = FilterCollectionAdapter(
-                sections: viewModel.sections,
-                collectionView: self.collectionView,
-                toggleSelection: { [weak self] section, index in
-                    self?.viewModel.toggleFilterSelection(section: section, index: index)
-                }
-            )
-
-
-            self.collectionView.delegate = self.adapter
-            self.collectionView.dataSource = self.adapter
+            self.setupAdapter()
             self.collectionView.reloadData()
         }
     }
 
-
     // MARK: - Actions
+
     @objc private func applyFilters() {
         viewModel.applySelectedFilters()
         dismiss(animated: true)

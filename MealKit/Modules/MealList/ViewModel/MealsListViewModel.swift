@@ -10,7 +10,6 @@ import Combine
 
 final class MealsListViewModel {
     enum ViewState {
-        case idle
         case loading
         case success
         case empty
@@ -19,7 +18,7 @@ final class MealsListViewModel {
 
     // MARK: - Published Properties
     @Published private(set) var cellViewModels: [MealCellViewModel] = []
-    @Published private(set) var state: ViewState = .idle
+    @Published private(set) var state: ViewState = .loading
 
     // MARK: - Public
     var coordinator: MealsListCoordinatorDelegate?
@@ -42,38 +41,39 @@ final class MealsListViewModel {
     // MARK: - Data Loading
     func fetchMeals() {
         state = .loading
-
         Task {
-            do {
-                let meals = try await service.fetchMeals(for: currentCategory ?? "")
-                allMeals = meals
-                cellViewModels = meals.map { MealCellViewModel(meal: $0) }
-                state = meals.isEmpty ? .empty : .success
-                onMealsFetched?()
-            } catch let error as MealServiceError {
-                state = .error(error.message)
-            } catch {
-                state = .error("Unexpected error: \(error.localizedDescription)")
-            }
+            await performMealFetch(for: currentCategory ?? "")
         }
     }
 
     func fetchMealsDebounced(for search: String) {
         debounceTask?.cancel()
         debounceTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 segundos
-            guard let self = self else { return }
-
             do {
-                let meals = try await self.service.fetchMeals(for: search)
-                self.cellViewModels = meals.map { MealCellViewModel(meal: $0) }
-                self.state = meals.isEmpty ? .empty : .success
-                self.onMealsFetched?()
-            } catch let error as MealServiceError {
-                self.state = .error(error.message)
+                try await Task.sleep(nanoseconds: 400_000_000)
+
+                // Verifica se a task não foi cancelada durante o sleep
+                try Task.checkCancellation()
+
+                await self?.performMealFetch(for: search)
             } catch {
-                self.state = .error("Unexpected error: \(error.localizedDescription)")
+                // Task foi cancelada — ignore, não é erro real de fetch
+                return
             }
+        }
+    }
+
+    private func performMealFetch(for query: String) async {
+        do {
+            let meals = try await service.fetchMeals(for: query)
+            self.allMeals = meals
+            self.cellViewModels = meals.map(MealCellViewModel.init)
+            self.state = meals.isEmpty ? .empty : .success
+            self.onMealsFetched?()
+        } catch let error as MealServiceError {
+            self.state = .error(error.message)
+        } catch {
+            self.state = .error("Unexpected error: \(error.localizedDescription)")
         }
     }
 
@@ -89,17 +89,15 @@ final class MealsListViewModel {
         currentCategory = filters.first
         fetchMeals()
     }
-    
+
     func didTapFilter() {
         coordinator?.openFilter()
     }
-
 }
 
 // MARK: - FiltersViewModelDelegate
 extension MealsListViewModel: FiltersViewModelDelegate {
-    func didApplyFilters(_ filters: [String]) {
-        currentCategory = filters.first
-        fetchMeals()
+    func didApplyMealFilters(_ filters: [String]) {
+        applyFilters(filters)
     }
 }

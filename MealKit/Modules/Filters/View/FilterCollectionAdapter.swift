@@ -57,6 +57,10 @@ extension FilterCollectionAdapter: UICollectionViewDataSource {
 
         let item = sections[indexPath.section].items[indexPath.item]
         cell.configure(title: item.name, isSelected: item.isSelected)
+
+        // Accessibility Identifier para testes
+        cell.accessibilityIdentifier = "filterCell_\(indexPath.section)_\(indexPath.item)"
+
         return cell
     }
 
@@ -76,6 +80,10 @@ extension FilterCollectionAdapter: UICollectionViewDataSource {
 
         let section = sections[indexPath.section]
         header.configure(title: section.title)
+
+        // Accessibility Identifier para headers
+        header.accessibilityIdentifier = "filterHeader_\(indexPath.section)"
+
         return header
     }
 }

@@ -28,7 +28,7 @@ final class MealsListCoordinator: Coordinator {
         let viewController = factory.makeMealsList(delegate: self)
 
         if let mealsListVC = viewController as? MealsListViewController {
-            self.mealsListViewModel = mealsListVC.viewModel // ✅ ESSENCIAL
+            self.mealsListViewModel = mealsListVC.viewModel
         }
 
         navigationController.pushViewController(viewController, animated: true)
