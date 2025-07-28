@@ -99,10 +99,8 @@ Cache e carregamento eficiente de imagens remotas, com suporte a placeholders, c
 1. Implementar cache com `URLCache` ou `FileManager`
 2. Persistência de favoritos com `UserDefaults` ou `CoreData`
 3. Funcionalidade de planejamento de refeições semanais
-4. Paginação e carregamento incremental de resultados
-5. Tela de detalhe com instruções e ingredientes
+4. Tela de detalhe com instruções e ingredientes
 6. Remote Config para gerenciamento de funcionalidades
-7. Isolamento de filtros como módulo próprio com delegate ou Combine
 
 ---
 
