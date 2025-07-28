@@ -8,7 +8,7 @@
 import UIKit
 import Combine
 
-final class MealsListViewController: UIViewController, ViewCode {
+final class MealsListViewController: UIViewController {
     // MARK: - Properties
     
     internal let viewModel: MealsListViewModel
@@ -38,6 +38,10 @@ final class MealsListViewController: UIViewController, ViewCode {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewCode()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         viewModel.fetchMeals()
     }
     
@@ -177,7 +181,7 @@ extension MealsListViewController: UISearchBarDelegate {
 }
 // MARK: - ViewCode Implementation
 
-extension MealsListViewController {
+extension MealsListViewController: ViewCode {
     func addSubviews() {
         view.addSubview(tableView)
         view.addSubview(loadingIndicator)

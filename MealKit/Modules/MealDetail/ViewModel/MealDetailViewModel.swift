@@ -15,20 +15,20 @@ final class MealDetailViewModel {
     }
 
     var title: String {
-        meal.strMeal
+        meal.strMeal ?? String()
     }
 
     var instructions: String {
-        meal.strInstructions
+        meal.strInstructions ?? String()
     }
 
     var thumbnailURL: URL? {
-        URL(string: meal.strMealThumb)
+        URL(string: meal.strMealThumb ?? String())
     }
 
 
     var imageAccessibilityLabel: String {
-        "Meal image: \(meal.strMeal)"
+        "Meal image: \(meal.strMeal ?? "Empty Image")"
     }
 
     var instructionsAccessibilityLabel: String {

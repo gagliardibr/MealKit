@@ -33,7 +33,7 @@ final class MealService: MealServiceProtocol {
         if search.isEmpty {
             cache.setObject(meals as NSArray, forKey: key)
         }
-
+        
         return meals
     }
 
@@ -74,7 +74,11 @@ final class MealService: MealServiceProtocol {
         }
 
         let (data, _) = try await session.data(from: url)
-        let response = try JSONDecoder().decode(MealsResponse.self, from: data)
-        return response.meals ?? []
+        do {
+            let response = try JSONDecoder().decode(MealsResponse.self, from: data)
+            return response.meals ?? []
+        } catch {
+            throw MealServiceError.decodingError
+        }
     }
 }

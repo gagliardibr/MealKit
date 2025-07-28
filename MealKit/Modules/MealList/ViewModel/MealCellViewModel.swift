@@ -12,7 +12,7 @@ struct MealCellViewModel {
     let imageURL: URL?
     
     init(meal: Meal) {
-        self.title = meal.strMeal
-        self.imageURL = URL(string: meal.strMealThumb)
+        self.title = meal.strMeal ?? String()
+        self.imageURL = URL(string: meal.strMealThumb ?? String())
     }
 }

@@ -42,7 +42,7 @@ final class MealsListViewModel {
     func fetchMeals() {
         state = .loading
         Task {
-            await performMealFetch(for: currentCategory ?? "")
+            await performMealFetch(for: currentCategory ?? String())
         }
     }
 
