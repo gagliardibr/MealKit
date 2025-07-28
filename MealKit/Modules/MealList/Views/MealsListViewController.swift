@@ -4,7 +4,7 @@ import SDWebImage
 final class MealsListViewController: UIViewController {
     // MARK: - Properties
 
-    private let viewModel: MealsListViewModel
+    internal let viewModel: MealsListViewModel
     private let tableView = UITableView()
     private let searchController = UISearchController(searchResultsController: nil)
 
@@ -24,6 +24,7 @@ final class MealsListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewCode()
+        bindViewModel()
         viewModel.fetchMeals()
     }
 
@@ -42,12 +43,7 @@ final class MealsListViewController: UIViewController {
     }
 
     @objc private func didTapFilter() {
-        let filterVC = FiltersViewController(viewModel: viewModel.filtersViewModel)
-        let nav = UINavigationController(rootViewController: filterVC)
-        if let sheet = nav.sheetPresentationController {
-            sheet.detents = [.medium()]
-        }
-        present(nav, animated: true)
+        viewModel.didTapFilter()
     }
 
     func setupNavigation() {
@@ -55,7 +51,13 @@ final class MealsListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
 
         let searchButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
-        let filterButton = UIBarButtonItem(image: UIImage(systemName: "line.3.horizontal.decrease.circle"), style: .plain, target: self, action: #selector(didTapFilter))
+        let filterButton = UIBarButtonItem(
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(didTapFilter)
+        )
+
         navigationItem.rightBarButtonItems = [filterButton, searchButton]
     }
 }
@@ -90,10 +92,22 @@ extension MealsListViewController: ViewCode {
     func bindViewModel() {
         viewModel.onMealsFetched = { [weak self] in
             DispatchQueue.main.async {
-                self?.tableView.reloadData()
+                guard let self = self else { return }
+
+                self.tableView.reloadData()
+
+                // Aguarda o próximo ciclo do run loop para garantir que as células existam
+                DispatchQueue.main.async {
+                    let indexPath = IndexPath(row: 0, section: 0)
+                    if self.tableView.numberOfSections > 0,
+                       self.tableView.numberOfRows(inSection: 0) > 0 {
+                        self.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
+                    }
+                }
             }
         }
     }
+
 
     func setupAccessibility() {
         tableView.accessibilityLabel = "Meals list"
@@ -164,7 +178,7 @@ extension MealsListViewController: UISearchBarDelegate {
 
 extension MealsListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.meals.count
+        viewModel.cellViewModels.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -175,21 +189,13 @@ extension MealsListViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
 
-        let meal = viewModel.meals[indexPath.row]
-        cell.configure(with: meal)
+        let cellViewModel = viewModel.cellViewModels[indexPath.row]
+        cell.configure(with: cellViewModel)
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         viewModel.didSelectMeal(at: indexPath.row)
-    }
-}
-
-// MARK: - Filters Delegate
-
-extension MealsListViewController: FiltersViewModelDelegate {
-    func didApplyFilters(_ filters: [String]) {
-        viewModel.applyFilters(filters)
     }
 }

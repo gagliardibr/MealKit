@@ -2,20 +2,6 @@
 //  MealDetailViewController.swift
 //  MealKit
 //
-//  Created by Bruna Gagliardi on 22/07/25.
-//
-
-//
-//  MealDetailViewController.swift
-//  MealKit
-//
-//  Created by Bruna Gagliardi on 21/07/25.
-//
-
-//
-//  MealDetailViewController.swift
-//  MealKit
-//
 //  Created by Bruna Gagliardi on 21/07/25.
 //
 
@@ -81,15 +67,23 @@ extension MealDetailViewController: ViewCode {
     }
 
     func bindViewModel() {
-        title = viewModel.meal.strMeal
-        imageView.sd_setImage(with: URL(string: viewModel.meal.strMealThumb), placeholderImage: UIImage(systemName: "photo"))
-        textView.text = viewModel.meal.strInstructions
+        title = viewModel.title
+        imageView.sd_setImage(with: viewModel.thumbnailURL, placeholderImage: UIImage(systemName: "photo"))
+        textView.text = viewModel.instructions
     }
 
     func setupAccessibility() {
-        imageView.accessibilityLabel = "Imagem da refeição"
-        textView.accessibilityLabel = "Modo de preparo"
+        imageView.isAccessibilityElement = true
+        imageView.accessibilityLabel = "Dish Image"
+        imageView.accessibilityHint = "Shows a preview of the meal"
+        imageView.accessibilityIdentifier = "mealImageView"
+        imageView.accessibilityTraits = .image
+
+        textView.isAccessibilityElement = true
+        textView.accessibilityLabel = "Preparation Instructions"
+        textView.accessibilityHint = "Swipe to read the full recipe instructions"
         textView.accessibilityIdentifier = "mealInstructionsTextView"
+        textView.accessibilityTraits = .staticText
     }
 
     func setupNavigation() {

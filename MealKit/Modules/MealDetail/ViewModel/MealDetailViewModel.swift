@@ -8,10 +8,31 @@
 import Foundation
 
 final class MealDetailViewModel {
-    let meal: Meal
+    private let meal: Meal
 
     init(meal: Meal) {
         self.meal = meal
     }
-}
 
+    var title: String {
+        meal.strMeal
+    }
+
+    var instructions: String {
+        meal.strInstructions
+    }
+
+    var thumbnailURL: URL? {
+        URL(string: meal.strMealThumb)
+    }
+
+
+    var imageAccessibilityLabel: String {
+        "Meal image: \(meal.strMeal)"
+    }
+
+    var instructionsAccessibilityLabel: String {
+        "Meal preparation instructions"
+    }
+}
+ 

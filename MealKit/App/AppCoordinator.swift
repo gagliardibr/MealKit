@@ -7,25 +7,26 @@
 
 import UIKit
 
-final class AppCoordinator {
+final class AppCoordinator: Coordinator {
     private let window: UIWindow
-    private let navigationController = UINavigationController()
-    private var mealsCoordinator: MealsListCoordinator?
+    internal let navigationController: UINavigationController
+    internal var childCoordinators: [Coordinator] = []
 
     init(window: UIWindow) {
         self.window = window
+        self.navigationController = UINavigationController()
     }
 
     func start() {
+        let mealsFactory = MealsListFactory()
+        let mealsCoordinator = MealsListCoordinator(
+            navigationController: navigationController,
+            factory: mealsFactory
+        )
+        childCoordinators.append(mealsCoordinator)
+        mealsCoordinator.start()
+
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
-        navigationController.applyDefaultAppearance()
-        showMealsList()
-    }
-
-    private func showMealsList() {
-        let coordinator = MealsListCoordinator(navigationController: navigationController)
-        self.mealsCoordinator = coordinator
-        coordinator.start()
     }
 }

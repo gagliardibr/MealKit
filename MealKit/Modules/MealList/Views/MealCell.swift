@@ -22,9 +22,11 @@ final class MealCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with meal: Meal) {
-        mealTitleLabel.text = meal.strMeal
-        mealImageView.sd_setImage(with: URL(string: meal.strMealThumb), placeholderImage: UIImage(systemName: "photo"))
+    func configure(with viewModel: MealCellViewModel) {
+        mealTitleLabel.text = viewModel.title
+        DispatchQueue.main.async {
+            self.mealImageView.sd_setImage(with: viewModel.imageURL)
+        }
     }
 }
 

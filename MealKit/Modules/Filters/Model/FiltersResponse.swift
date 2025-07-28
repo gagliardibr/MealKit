@@ -7,11 +7,12 @@
 
 import Foundation
 
-struct FilterResponse: Decodable {
-    let meals: [Filter]
+struct FilterResponse: Codable {
+    let meals: [FilterItemDTO]
 }
 
-struct Filter: Decodable {
+struct FilterItemDTO: Codable {
     let strCategory: String?
     let strArea: String?
 }
+

@@ -6,99 +6,100 @@
 //
 
 import Foundation
+import Combine
 
 final class MealsListViewModel {
-    // MARK: - Outputs
+    enum ViewState {
+        case idle
+        case loading
+        case success
+        case empty
+        case error(String)
+    }
 
-    var meals: [Meal] = []
+    // MARK: - Published Properties
+    @Published private(set) var cellViewModels: [MealCellViewModel] = []
+    @Published private(set) var state: ViewState = .idle
+
+    // MARK: - Public
+    var coordinator: MealsListCoordinatorDelegate?
+    var filtersViewModel: FiltersViewModel!
     var onMealsFetched: (() -> Void)?
-    weak var coordinator: MealsListCoordinating?
 
-    // MARK: - Dependencies
+    // MARK: - Private
+    private let service: MealServiceProtocol
+    private var currentCategory: String?
+    private var allMeals: [Meal] = []
+    private var debounceTask: Task<Void, Never>?
 
-    private let mealService = MealService()
+    // MARK: - Init
+    init(service: MealServiceProtocol) {
+        self.service = service
+        self.filtersViewModel = FiltersViewModel()
+        self.filtersViewModel.delegate = self
+    }
 
-    // MARK: - State
-
-    private var cachedMeals: [Meal] = []
-    private var selectedFilters: [String] = []
-    private var searchTask: Task<Void, Error>?
-
-    private let debounceInterval: UInt64 = 300_000_000 // 300ms
-
-    lazy var filtersViewModel: FiltersViewModel = {
-        let vm = FiltersViewModel()
-        vm.delegate = self
-        return vm
-    }()
-
-    // MARK: - Public Methods
-
-    func fetchMeals(searchTerm: String = "") {
-        cancelSearchTask()
+    // MARK: - Data Loading
+    func fetchMeals() {
+        state = .loading
 
         Task {
             do {
-                let meals = try await mealService.fetchMeals(for: searchTerm)
-                self.cachedMeals = meals
-                self.meals = self.applyFilters(to: meals)
-                self.onMealsFetched?()
+                let meals = try await service.fetchMeals(for: currentCategory ?? "")
+                allMeals = meals
+                cellViewModels = meals.map { MealCellViewModel(meal: $0) }
+                state = meals.isEmpty ? .empty : .success
+                onMealsFetched?()
+            } catch let error as MealServiceError {
+                state = .error(error.message)
             } catch {
-                print("Error fetching meals: \(error)")
+                state = .error("Unexpected error: \(error.localizedDescription)")
             }
         }
     }
 
-    func fetchMealsDebounced(for term: String) {
-        cancelSearchTask()
+    func fetchMealsDebounced(for search: String) {
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 segundos
+            guard let self = self else { return }
 
-        searchTask = Task {
-            try await Task.sleep(nanoseconds: debounceInterval)
-            guard !Task.isCancelled else { return }
-
-            fetchMeals(searchTerm: term)
+            do {
+                let meals = try await self.service.fetchMeals(for: search)
+                self.cellViewModels = meals.map { MealCellViewModel(meal: $0) }
+                self.state = meals.isEmpty ? .empty : .success
+                self.onMealsFetched?()
+            } catch let error as MealServiceError {
+                self.state = .error(error.message)
+            } catch {
+                self.state = .error("Unexpected error: \(error.localizedDescription)")
+            }
         }
     }
 
-    func applyFilters(_ filters: [String]) {
-        selectedFilters = filters
-        meals = applyFilters(to: cachedMeals)
-        onMealsFetched?()
-    }
-
+    // MARK: - Selection
     func didSelectMeal(at index: Int) {
-        let selectedMeal = meals[index]
-        coordinator?.showMealDetail(meal: selectedMeal)
+        guard index < allMeals.count else { return }
+        let meal = allMeals[index]
+        coordinator?.navigateToMealDetail(with: meal)
     }
 
-    func clearCache() {
-        cancelSearchTask()
-        cachedMeals = []
-        meals = []
-        selectedFilters = []
+    // MARK: - Filters
+    func applyFilters(_ filters: [String]) {
+        currentCategory = filters.first
+        fetchMeals()
+    }
+    
+    func didTapFilter() {
+        coordinator?.openFilter()
     }
 
-    // MARK: - Private Helpers
-
-    private func cancelSearchTask() {
-        searchTask?.cancel()
-        searchTask = nil
-    }
-
-    private func applyFilters(to meals: [Meal]) -> [Meal] {
-        guard !selectedFilters.isEmpty else { return meals }
-
-        return meals.filter { meal in
-            selectedFilters.contains(meal.strCategory ?? "") ||
-            selectedFilters.contains(meal.strArea ?? "")
-        }
-    }
 }
 
 // MARK: - FiltersViewModelDelegate
-
 extension MealsListViewModel: FiltersViewModelDelegate {
     func didApplyFilters(_ filters: [String]) {
-        applyFilters(filters)
+        currentCategory = filters.first
+        fetchMeals()
     }
 }
