@@ -1,127 +1,149 @@
-MealKit – Aplicativo iOS Modular com MVVM-C
+# MealKit – Aplicativo iOS Modular com MVVM-C
 
-MealKit é um app iOS modular criado para demonstrar proficiência em arquitetura limpa, testabilidade, boas práticas de desenvolvimento, componentização e integração com APIs REST reais.  
-Foi desenvolvido como entrega técnica para uma vaga iOS.
+MealKit é um aplicativo iOS modular desenvolvido para demonstrar proficiência em arquitetura limpa, testabilidade, boas práticas de desenvolvimento, componentização e integração com APIs REST reais.  
+Este projeto foi criado como entrega técnica para uma vaga de desenvolvedor(a) iOS.
 
--------------------------------------------------------------------------------
+---
 
-Descrição do Projeto
+## Descrição do Projeto
 
-MealKit permite ao usuário:
+O aplicativo permite ao usuário:
+
 - Buscar receitas usando a TheMealDB API
 - Visualizar uma lista de pratos com imagens e títulos
 - Filtrar receitas por categoria ou área de origem
+- Evoluir futuramente com suporte a favoritos e planejamento de refeições
 
--------------------------------------------------------------------------------
+---
 
-API Utilizada
+## API Utilizada
 
-Integração com a TheMealDB Public API (v1):
-- Buscar lista receita e receita por nome: /search.php?s=
-- Listar todas as categorias: /list.php?c=list
-- Listar todas as áreas: /list.php?a=list
-- Filtrar por categoria: /filter.php?c=Seafood
-- Filtrar por área: /filter.php?a=Canadian
+Integração com a [TheMealDB Public API (v1)](https://www.themealdb.com/api.php):
 
--------------------------------------------------------------------------------
+- Buscar lista de receitas ou por nome: `/search.php?s=`
+- Listar todas as categorias: `/list.php?c=list`
+- Listar todas as áreas: `/list.php?a=list`
+- Filtrar por categoria: `/filter.php?c=Seafood`
+- Filtrar por área: `/filter.php?a=Canadian`
 
-Arquitetura Adotada: MVVM-C
+---
 
-Por que MVVM-C (Model-View-ViewModel + Coordinator)?
+## Arquitetura Adotada: MVVM-C
 
-- Escalabilidade com Swift: separação clara de responsabilidades e compatibilidade com ObservableObject facilitam futura adoção de SwiftUI. A transição pode ser feita gradualmente, mantendo a lógica no ViewModel.
-- Organização por fluxo: o padrão MVVM-C facilita a navegação desacoplada e a testabilidade, evitando que a lógica de UI fique misturada à navegação.
-- Reusabilidade e manutenção: cada camada é isolada, favorecendo mudanças futuras sem causar efeito cascata.
-- Responsabilidade única: a ViewModel cuida apenas do estado da tela, o Service trata do backend e o Coordinator da navegação.
-- Pronto para ambientes com múltiplas squads e codebase grande: favorece divisão por módulo/feature.
+### Por que escolhemos MVVM-C (Model - View - ViewModel - Coordinator)?
 
--------------------------------------------------------------------------------
+- **Escalabilidade com Swift:** a separação clara de responsabilidades permite transição gradual para SwiftUI mantendo a lógica intacta no ViewModel.
+- **Organização por fluxo:** facilita a testabilidade e desacopla a navegação da UI.
+- **Reusabilidade e manutenção:** isolamento de camadas evita efeitos colaterais em refatorações.
+- **Responsabilidade única:** ViewModel trata o estado da tela, Service lida com rede, Coordinator cuida da navegação.
+- **Adoção em ambientes com múltiplas squads:** ideal para grandes codebases com equipes paralelas.
 
-Estrutura de Pastas
+---
 
+## Estrutura de Pastas
+
+```text
 MealKit/
+├── App/                          - AppDelegate e AppCoordinator
+├── Modules/
+│   ├── MealList/                 - Tela principal de receitas
+│   ├── MealDetail/              - Tela de detalhes (em construção)
+│   └── Filters/                 - Filtros por categoria/área
+├── Networking/                  - Camada de requisições + erros
+├── UI/                          - Componentes reutilizáveis + Design System
+├── Extensions/                  - Extensões úteis (UIColor, etc)
+├── Common/                      - Enums, strings e constantes
+├── Resources/                   - Imagens, assets (futuro)
+├── MealKitTests/                - Testes unitários, mocks e snapshots
+└── MealKitUITests/              - Testes de UI (em estruturação)
+```
 
-App/                     - AppDelegate e AppCoordinator
+---
 
-Modules/
+## Decisões Técnicas e Justificativas
 
-MealList/                - Tela principal de receitas
+**Uso de MVVM-C**  
+Facilita a escalabilidade, testabilidade e organização de grandes projetos. Compatível com ambientes modernos e adoção futura de SwiftUI.
 
-MealDetail/              - Tela de detalhes (em construção)
+**Organização por módulos (Modules/)**  
+Favorece o trabalho em equipes paralelas e separação de contexto por funcionalidade.
 
-Filters/                 - Filtros por categoria/área
+**View Code + UIKit**  
+Elimina Storyboard, melhora reuso e clareza do layout, facilita testes e futuras migrações para SwiftUI.
 
-Networking/              - Camada de requisições + erros
+**Coordinator e Factory**  
+Desacoplamento completo da navegação e controle claro de injeções de dependência.
 
-UI/                      - Componentes reutilizáveis + Design System
+**Networking isolado por protocolo**  
+Flexível, testável e facilmente substituível por outro client (como Alamofire).
 
-Extensions/              - Extensões úteis (UIColor, etc)
+**Extensões e Design System**  
+Reduz repetição e melhora consistência visual e semântica entre componentes.
 
-Common/                  - Enums, strings e constantes
+**Uso da biblioteca SDWebImage**  
+Cache e carregamento eficiente de imagens remotas, com suporte a placeholders, cancelamento de requisições e integração direta com `UIImageView`.
 
-Resources/               - Imagens, assets (futuro)
+---
 
-MealKitTests/            - Testes unitários, mocks e snapshots (em andamento)
-
-MealKitUITests/          - Testes de UI (em andamento)
-
--------------------------------------------------------------------------------
-
-Decisões Técnicas e Justificativas
-
-Decisão: Uso de MVVM-C  
-Justificativa: Facilita a escalabilidade e a manutenção do projeto em ambientes corporativos, separa responsabilidades, favorece testabilidade e permite futuras migrações parciais para SwiftUI.
-
-Decisão: Organização por Modules/  
-Justificativa: Reflete estrutura baseada em domínio, ideal para times trabalhando em paralelo. Garante que regras de negócio, UI e navegação estejam localizadas por funcionalidade.
-
-Decisão: ViewCode + UIKit  
-Justificativa: Controle total da renderização, elimina conflitos de Storyboard e permite reaproveitamento de views em testes e previews SwiftUI no futuro.
-
-Decisão: Coordinator e Factory  
-Justificativa: Navegação centralizada e desacoplada da interface. Facilitam injeção de dependência e uso de mocks em testes.
-
-Decisão: Camada de Networking isolada  
-Justificativa: Permite substituição de URLSession por outras tecnologias (ex: Alamofire) e facilita testes com mocks.
-
-Decisão: Uso de extensões e design system  
-Justificativa: Reduz código duplicado e melhora consistência visual e manutenibilidade.
-
--------------------------------------------------------------------------------
-
-Testes (em andamento)
+## Testes (Em andamento)
 
 - Unitários com XCTest
-- Mocks de serviços e estados (loading, erro, sucesso)
-- Testes visuais com SnapshotTesting
-- Preparação para testes de UI com XCUITest
+- Mocks para serviços, estados de erro, loading e sucesso
+- Testes de Snapshot com `SnapshotTesting`
+- Estrutura inicial pronta para testes de UI com XCUITest
 
--------------------------------------------------------------------------------
+---
 
-Melhorias Técnicas Futuras
+## Melhorias Técnicas Futuras
 
-1. Implementar cache com URLCache ou FileManager
-2. Criar sistema de favoritos com persistência local (ex: UserDefaults ou CoreData)
-3. Tela de detalhe com instruções, ingredientes e vídeo
-4. Testes de UI com XCUITest
-5. Remote Config para ativação de features em produção
-6. Adotar Swift Concurrency com async let e TaskGroup
-7. Reestruturação de filtros como módulo independente com comunicação via delegate ou Combine
+1. Implementar cache com `URLCache` ou `FileManager`
+2. Persistência de favoritos com `UserDefaults` ou `CoreData`
+3. Funcionalidade de planejamento de refeições semanais
+4. Paginação e carregamento incremental de resultados
+5. Tela de detalhe com instruções e ingredientes
+6. Remote Config para gerenciamento de funcionalidades
+7. Isolamento de filtros como módulo próprio com delegate ou Combine
 
--------------------------------------------------------------------------------
+---
 
-Para quem está começando
+## Para quem está começando
 
-- ViewController exibe os dados
-- ViewModel contém a lógica de estado e interação
-- Service realiza as requisições HTTP
-- Coordinator decide para onde navegar
-- Tudo é dividido por funcionalidade, o que torna o app fácil de entender, testar e manter
+- `ViewController` exibe os dados na tela
+- `ViewModel` gerencia o estado e a lógica da tela
+- `Service` realiza as chamadas para a API
+- `Coordinator` decide qual tela abrir
+- Tudo está separado por funcionalidade para facilitar entendimento e manutenção
 
--------------------------------------------------------------------------------
+---
 
-Autora
+## Como rodar o projeto
 
-Bruna Gagliardi  
-Desenvolvedora iOS    
-Entrega técnica para vaga iOS
+1. Clone este repositório:
+
+```bash
+git clone https://github.com/gagliardibr/MealKit.git
+```
+
+2. Abra com o Xcode (versão 14 ou superior):
+
+```bash
+open MealKit.xcodeproj
+```
+
+3. Aguarde a resolução automática de dependências via Swift Package Manager (SPM):
+
+- SnapshotTesting  
+- iOSSnapshotTestCase  
+- SDWebImage  
+
+4. Caso necessário: `File > Packages > Resolve Package Versions`
+
+5. Selecione o target `MealKit` e execute com `Command + R`
+
+---
+
+## Autora
+
+**Bruna Gagliardi**  
+Desenvolvedora iOS  
+Entrega técnica para vaga de desenvolvedor(a) iOS
