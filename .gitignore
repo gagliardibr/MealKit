@@ -19,7 +19,6 @@ xcuserdata/
 
 # SwiftPM
 .swiftpm
-Package.resolved
 .build/
 
 # Xcode Workspace (se não estiver usando CocoaPods)
