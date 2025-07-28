@@ -12,10 +12,11 @@ struct MealsResponse: Codable {
 }
 
 struct Meal: Codable {
-    let idMeal: String
-    let strMeal: String
-    let strMealThumb: String
-    let strInstructions: String
+    let idMeal: String?
+    let strMeal: String?
+    let strMealThumb: String?
+    let strInstructions: String?
     let strCategory: String?
     let strArea: String?
 }
+

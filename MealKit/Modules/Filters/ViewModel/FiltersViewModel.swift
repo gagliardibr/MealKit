@@ -7,101 +7,94 @@
 
 import Foundation
 
+// MARK: - Delegate
+
 protocol FiltersViewModelDelegate: AnyObject {
-    func didApplyFilters(_ filters: [String])
+    func didApplyMealFilters(_ filters: [String])
 }
 
+// MARK: - ViewModel
 
 final class FiltersViewModel {
+    private(set) var sections: [FilterSection] = []
+
     weak var delegate: FiltersViewModelDelegate?
+    private let filterService: FilterServiceProtocol
 
-    enum FilterSection: Int, CaseIterable {
-        case category
-        case area
+    var onFiltersUpdated: (([FilterSection]) -> Void)?
 
-        var title: String {
-            switch self {
-            case .category: return "Categories"
-            case .area: return "Areas"
-            }
-        }
+    // MARK: - Init (com injeção de dependência)
+
+    init(filterService: FilterServiceProtocol = FilterService()) {
+        self.filterService = filterService
     }
 
-    private let service = FilterService()
+    // MARK: - Ações
 
-    private(set) var categories: [String] = []
-    private(set) var areas: [String] = []
-
-    private(set) var selectedCategories: Set<String> = []
-    private(set) var selectedAreas: Set<String> = []
-
-    var isLoading = false
-
-    func fetchFilters(completion: @escaping () -> Void) {
+    func fetchFilters() {
         Task {
-            isLoading = true
-            async let categories = try? service.fetchCategories()
-            async let areas = try? service.fetchAreas()
-            self.categories = await categories ?? []
-            self.areas = await areas ?? []
-            isLoading = false
-            completion()
-        }
-    }
+            async let categories = try? filterService.fetchCategories()
+            async let areas = try? filterService.fetchAreas()
 
-    func toggleSelection(in section: FilterSection, item: String) {
-        switch section {
-        case .category:
-            if selectedCategories.contains(item) {
-                selectedCategories.remove(item)
-            } else {
-                selectedCategories = [item]
-                selectedAreas.removeAll()
+            let results = await (categories, areas)
+
+            DispatchQueue.main.async {
+                let previousSelections = self.sections.reduce(into: [String: Set<String>]()) { acc, section in
+                    let selected = section.items.filter { $0.isSelected }.map { $0.name }
+                    acc[section.title] = Set(selected)
+                }
+
+                self.sections = [
+                    FilterSection(
+                        title: "Category",
+                        items: (results.0 ?? []).map { item in
+                            FilterItem(
+                                name: item.name,
+                                isSelected: previousSelections["Category"]?.contains(item.name) ?? false
+                            )
+                        }
+                    ),
+                    FilterSection(
+                        title: "Area",
+                        items: (results.1 ?? []).map { item in
+                            FilterItem(
+                                name: item.name,
+                                isSelected: previousSelections["Area"]?.contains(item.name) ?? false
+                            )
+                        }
+                    )
+                ]
+
+
+                self.onFiltersUpdated?(self.sections)
             }
-        case .area:
-            if selectedAreas.contains(item) {
-                selectedAreas.remove(item)
-            } else {
-                selectedAreas = [item]
-                selectedCategories.removeAll()
-            }
         }
     }
 
-    func isSelected(in section: FilterSection, item: String) -> Bool {
-        switch section {
-        case .category:
-            return selectedCategories.contains(item)
-        case .area:
-            return selectedAreas.contains(item)
-        }
-    }
+    func toggleFilterSelection(section: Int, index: Int) {
+        guard sections.indices.contains(section),
+              sections[section].items.indices.contains(index) else { return }
 
-    func item(at indexPath: IndexPath) -> String {
-        switch FilterSection(rawValue: indexPath.section)! {
-        case .category:
-            return categories[indexPath.item]
-        case .area:
-            return areas[indexPath.item]
-        }
-    }
+        let wasSelected = sections[section].items[index].isSelected
 
-    func numberOfItems(in section: FilterSection) -> Int {
-        switch section {
-        case .category:
-            return categories.count
-        case .area:
-            return areas.count
+        // Deseleciona todos os itens da seção
+        for i in 0..<sections[section].items.count {
+            sections[section].items[i].isSelected = false
         }
+
+        // Toggle
+        if !wasSelected {
+            sections[section].items[index].isSelected = true
+        }
+
+        onFiltersUpdated?(sections)
     }
 
     func applySelectedFilters() {
-        let allFilters = Array(selectedCategories.union(selectedAreas))
-        delegate?.didApplyFilters(allFilters)
-    }
-    
-    func clearFilters() {
-        selectedAreas = []
-        selectedCategories = []
+        let selected = sections.flatMap { section in
+            section.items.filter { $0.isSelected }.map { $0.name }
+        }
+
+        delegate?.didApplyMealFilters(selected)
     }
 }

@@ -12,30 +12,43 @@ final class FilterHeaderView: UICollectionReusableView {
 
     private let titleLabel = UILabel()
 
-    var title: String? {
-        didSet {
-            titleLabel.text = title
-        }
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        setupViewCode()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupUI() {
-        titleLabel.font = .boldSystemFont(ofSize: 16)
-        titleLabel.textColor = .label
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        addSubview(titleLabel)
-        NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
+    func configure(title: String) {
+        titleLabel.text = title
     }
 }
+
+extension FilterHeaderView: ViewCode {
+    func addSubviews() {
+        addSubview(titleLabel)
+    }
+
+    func setupConstraints() {
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
+        ])
+    }
+
+    func setupStyle() {
+        titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        titleLabel.textColor = .label
+    }
+
+    func bindViewModel() {}
+    func setupAccessibility() {}
+    func setupNavigation() {}
+}
+
