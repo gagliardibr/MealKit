@@ -54,8 +54,8 @@ MealKit/
 ├── Extensions/                  - Extensões úteis (UIColor, etc)
 ├── Common/                      - Enums, strings e constantes
 ├── Resources/                   - Imagens, assets (futuro)
-├── MealKitTests/                - Testes unitários, mocks e snapshots
-└── MealKitUITests/              - Testes de UI (em estruturação)
+├── MealKitTests/                - Testes unitários, mocks e snapshots (em construção)
+└── MealKitUITests/              - Testes de UI (em construção)
 ```
 
 ---
