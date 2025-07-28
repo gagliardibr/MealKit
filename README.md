@@ -41,16 +41,27 @@ Estrutura de Pastas
 
 MealKit/
 ├── App/                          - AppDelegate e AppCoordinator
+
 ├── Modules/
+
 │   ├── MealList/                 - Tela principal de receitas
+
 │   ├── MealDetail/              - Tela de detalhes (em construção)
+
 │   └── Filters/                 - Filtros por categoria/área
+
 ├── Networking/                  - Camada de requisições + erros
+
 ├── UI/                          - Componentes reutilizáveis + Design System
+
 ├── Extensions/                  - Extensões úteis (UIColor, etc)
+
 ├── Common/                      - Enums, strings e constantes
+
 ├── Resources/                   - Imagens, assets (futuro)
+
 ├── MealKitTests/                - Testes unitários, mocks e snapshots (em andamento)
+
 └── MealKitUITests/              - Testes de UI (em andamento)
 
 -------------------------------------------------------------------------------
