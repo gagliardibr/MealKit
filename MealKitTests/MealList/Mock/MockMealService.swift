@@ -9,9 +9,6 @@
 import Foundation
 @testable import MealKit
 
-import Foundation
-@testable import MealKit
-
 final class MockMealService: MealServiceProtocol {
     var mealsToReturn: [Meal] = []
     var shouldThrowError: Bool = false
