@@ -11,14 +11,15 @@ final class AppCoordinator: Coordinator {
     private let window: UIWindow
     internal let navigationController: UINavigationController
     internal var childCoordinators: [Coordinator] = []
+    internal let mealsFactory: MealsListFactoryProtocol
 
-    init(window: UIWindow) {
+    init(window: UIWindow, mealsFactory: MealsListFactoryProtocol = MealsListFactory()) {
         self.window = window
         self.navigationController = UINavigationController()
+        self.mealsFactory = mealsFactory
     }
 
-    func start() {
-        let mealsFactory = MealsListFactory()
+    internal func start() {
         let mealsCoordinator = MealsListCoordinator(
             navigationController: navigationController,
             factory: mealsFactory
