@@ -60,7 +60,7 @@ extension MealDetailViewController: ViewCode {
     }
 
     func setupStyle() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .white
 
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true

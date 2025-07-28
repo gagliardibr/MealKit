@@ -97,7 +97,10 @@ extension MealsListViewController: UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MealCell.reuseIdentifier, for: indexPath) as? MealCell else {
             return UITableViewCell()
         }
-        cell.configure(with: viewModel.cellViewModels[indexPath.row])
+        
+        let model = viewModel.cellViewModels[indexPath.row]
+        cell.accessibilityIdentifier = "mealCell_\(model.title)"
+        cell.configure(with: model)
         return cell
     }
 }
@@ -196,7 +199,7 @@ extension MealsListViewController {
     }
     
     func setupStyle() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .white
         tableView.backgroundColor = .clear
         tableView.separatorInset = .zero
         tableView.layoutMargins = .zero
@@ -228,7 +231,9 @@ extension MealsListViewController {
         navigationItem.largeTitleDisplayMode = .never
         
         let searchButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
+        searchButton.accessibilityIdentifier = "searchButton"
         let filterButton = UIBarButtonItem(image: UIImage(systemName: "line.3.horizontal.decrease.circle"), style: .plain, target: self, action: #selector(didTapFilter))
+        filterButton.accessibilityIdentifier = "filterButton"
         navigationItem.rightBarButtonItems = [filterButton, searchButton]
         definesPresentationContext = true
     }
