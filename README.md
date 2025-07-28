@@ -12,7 +12,6 @@ O aplicativo permite ao usuário:
 - Buscar receitas usando a TheMealDB API
 - Visualizar uma lista de pratos com imagens e títulos
 - Filtrar receitas por categoria ou área de origem
-- Evoluir futuramente com suporte a favoritos e planejamento de refeições
 
 ---
 
@@ -54,8 +53,8 @@ MealKit/
 ├── Extensions/                  - Extensões úteis (UIColor, etc)
 ├── Common/                      - Enums, strings e constantes
 ├── Resources/                   - Imagens, assets (futuro)
-├── MealKitTests/                - Testes unitários, mocks e snapshots (em construção)
-└── MealKitUITests/              - Testes de UI (em construção)
+├── MealKitTests/                - Testes unitários, mocks e snapshots
+└── MealKitUITests/              - Testes de UI (em estruturação)
 ```
 
 ---
@@ -83,9 +82,46 @@ Reduz repetição e melhora consistência visual e semântica entre componentes.
 **Uso da biblioteca SDWebImage**  
 Cache e carregamento eficiente de imagens remotas, com suporte a placeholders, cancelamento de requisições e integração direta com `UIImageView`.
 
+**Uso da biblioteca SPM** 
+
+Para este projeto foi utilizado o **Swift Package Manager (SPM)**.
+
+### Por que escolhemos o SPM?
+
+- Integrado nativamente ao Xcode (desde a versão 11)
+- Evita a necessidade de arquivos `.xcworkspace`
+- Menor configuração local para novos desenvolvedores
+
+### Comparativo com outros gerenciadores
+
+```
+| Gerenciador     | Prós                                              | Contras                                                     |
+|-----------------|---------------------------------------------------|-------------------------------------------------------------|
+| **SPM**         | Nativo, simples, leve, moderno                    | Nem todas libs ainda estão disponíveis                      |
+| **CocoaPods**   | Amplo suporte de libs, popular                    | Mais lento, gera `.xcworkspace`, pode causar conflitos      |
+| **Carthage**    | Builds binários, bom para libs privadas           | Mais difícil de configurar, requer scripts adicionais       |
+```
+
 ---
 
-## Testes (Em andamento)
+## Capturas de Tela
+
+Espaço reservado para imagens do app:
+
+- [ ] Lista de receitas carregadas
+- [ ] Aplicação de filtros (categoria ou área)
+- [ ] Estado de erro com mensagem amigável
+- [ ] Tela de detalhes (quando implementada)
+
+Exemplo de sintaxe no Markdown:
+
+```markdown
+![Lista de receitas](./Resources/Screenshots/meals-list.png)
+```
+
+---
+
+## Testes
 
 - Unitários com XCTest
 - Mocks para serviços, estados de erro, loading e sucesso
@@ -99,8 +135,10 @@ Cache e carregamento eficiente de imagens remotas, com suporte a placeholders, c
 1. Implementar cache com `URLCache` ou `FileManager`
 2. Persistência de favoritos com `UserDefaults` ou `CoreData`
 3. Funcionalidade de planejamento de refeições semanais
-4. Tela de detalhe com instruções e ingredientes
+4. Paginação e carregamento incremental de resultados
+5. Tela de detalhe com instruções e ingredientes
 6. Remote Config para gerenciamento de funcionalidades
+7. Isolamento de filtros como módulo próprio com delegate ou Combine
 
 ---
 
@@ -143,5 +181,5 @@ open MealKit.xcodeproj
 ## Autora
 
 **Bruna Gagliardi**  
-Desenvolvedora iOS  
-Entrega técnica para vaga de desenvolvedor(a) iOS
+Desenvolvedora iOS    
+Entrega técnica para vaga de desenvolvedor(a) iOS.
